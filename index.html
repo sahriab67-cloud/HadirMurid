@@ -87,11 +87,20 @@ async function simpanData(kelas, btn) {
   const data = { kelas, pengisi, hadir, jumlah, catatan };
 
   try {
-    const res = await fetch(GOOGLE_WEBAPP_URL, {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" },
-    });
+fetch(GOOGLE_WEBAPP_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    kelas,
+    pengisi,
+    hadir,
+    jumlah,
+    catatan
+  })
+})
+.then(res => res.json())
+.then(data => alert("✅ " + data.message))
+.catch(err => alert("❌ Ralat: " + err));
     const result = await res.json();
     alert(result.message || "Disimpan!");
   } catch (err) {
@@ -107,3 +116,4 @@ window.onload = loadData;
 
 </body>
 </html>
+
