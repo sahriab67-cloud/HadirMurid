@@ -1,184 +1,243 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Laporan Kehadiran Harian Murid STS</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <style>
-    body { background:#f3f6fc; font-family:'Segoe UI',sans-serif; }
-    .header-bar { background:#0d6efd; color:white; border-radius:10px; padding:10px 15px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .card { border-radius:15px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    .info-box { background:white; border-radius:10px; padding:10px 20px; margin-bottom:15px; }
-    .progress { height:18px; }
-    input { text-align:center; }
-    table input { width:100%; border:1px solid #ddd; border-radius:5px; padding:4px; }
-    .saved { background:#d4edda!important; }
-    .unsaved { background:#f8d7da!important; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Kehadiran STS</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f4f8ff;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  header {
+    background: #1976d2;
+    color: white;
+    padding: 15px;
+    font-size: 1.4em;
+    font-weight: 600;
+  }
+  .container {
+    max-width: 900px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+  }
+  label {
+    font-weight: 600;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 6px 8px;
+    margin: 6px 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  button {
+    background: #1976d2;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:hover {
+    background: #0d47a1;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    font-size: 14px;
+  }
+  th {
+    background: #1976d2;
+    color: white;
+  }
+  .analisis-box {
+    background: #e3f2fd;
+    border-radius: 12px;
+    margin: 15px auto;
+    padding: 10px;
+    width: 80%;
+    font-weight: 600;
+  }
+  .saved {
+    color: green;
+    font-weight: bold;
+  }
+  .error {
+    color: red;
+    font-weight: bold;
+  }
+</style>
 </head>
-<body class="p-3">
-  <div class="header-bar mb-3">
-    <b>Laporan Kehadiran Harian Murid STS</b>
-    <div>Tarikh <input type="date" id="tarikh" class="form-control form-control-sm d-inline-block" style="width:auto;"></div>
-    <div>Hari <input type="text" id="hari" class="form-control form-control-sm d-inline-block" style="width:100px;"></div>
-    <button id="setHariBaru" class="btn btn-light btn-sm">Set Hari Baru</button>
-    <button id="refresh" class="btn btn-light btn-sm">Segar Semula</button>
-    <button id="exportCsv" class="btn btn-light btn-sm">Eksport CSV</button>
-  </div>
+<body>
 
-  <div id="analisis" class="text-center mb-3">
-    <div class="card p-3 d-inline-block text-center" style="min-width:260px;">
-      <div><b>Kelas Isi:</b> <span id="kelasIsi">0</span> / <span id="totalKelas">0</span></div>
-      <div><b>Murid Hadir:</b> <span id="muridHadir">0</span></div>
-      <div><b>Peratus:</b> <span id="peratusHadir">0%</span></div>
-      <div class="progress mt-2">
-        <div id="barHadir" class="progress-bar bg-success" style="width:0%;"></div>
-      </div>
-    </div>
-  </div>
+<header>
+  Laporan Kehadiran Harian STS
+</header>
 
-  <div class="card p-3">
-    <div class="small text-muted mb-2" id="rekodCount">Disisi: 0</div>
-    <div class="table-responsive">
-      <table class="table table-bordered table-sm align-middle text-center">
-        <thead class="table-primary">
-          <tr>
-            <th>KELAS</th><th>NAMA PENGISI</th><th>BIL. HADIR</th><th>JUMLAH MURID</th><th>CATATAN</th><th>TINDAKAN</th>
-          </tr>
-        </thead>
-        <tbody id="jadualKelas"></tbody>
-      </table>
-    </div>
-  </div>
+<div class="container">
+  <h3 id="tarikh-hari"></h3>
+  <div id="analisis" class="analisis-box">Menunggu data...</div>
 
-  <script>
-  const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbyK_qh_CV3fdyq-dsLbJCboDvTXoHs6aUlpHCq26SJAc8T3lbkslfep2nLqsDUzzTJm/exec";
+  <form id="formKehadiran">
+    <label for="kelas">Kelas:</label>
+    <select id="kelas" name="kelas"></select>
 
-  const jadualKelas = document.getElementById("jadualKelas");
-  const kelasIsi = document.getElementById("kelasIsi");
-  const totalKelas = document.getElementById("totalKelas");
-  const muridHadir = document.getElementById("muridHadir");
-  const peratusHadir = document.getElementById("peratusHadir");
-  const barHadir = document.getElementById("barHadir");
+    <label for="pengisi">Nama Pengisi:</label>
+    <input type="text" id="pengisi" name="pengisi">
 
-  async function muatData() {
-    const t = document.getElementById("tarikh").value;
-    try {
-      const res = await fetch(`${DEPLOY_URL}?action=get&tarikh=${t}`);
-      const data = await res.json();
-      if (Array.isArray(data)) paparJadual(data);
-      else jadualKelas.innerHTML = `<tr><td colspan="6" class="text-danger">Tiada data untuk tarikh ini.</td></tr>`;
-    } catch (e) {
-      jadualKelas.innerHTML = `<tr><td colspan="6" class="text-danger">Ralat sambungan ke pelayan.</td></tr>`;
+    <label for="hadir">Bil. Hadir:</label>
+    <input type="number" id="hadir" name="hadir">
+
+    <label for="jumlah">Jumlah Murid:</label>
+    <input type="number" id="jumlah" name="jumlah">
+
+    <label for="catatan">Catatan:</label>
+    <textarea id="catatan" name="catatan" rows="2"></textarea>
+
+    <button type="submit">💾 Simpan</button>
+    <span id="status"></span>
+  </form>
+
+  <table id="jadual">
+    <thead>
+      <tr>
+        <th>Kelas</th><th>Pengisi</th><th>Hadir</th><th>Jumlah</th><th>Peratus</th><th>Catatan</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbwA9zdIDX_DNOOwXinBpqQzeQHGCeMCoolat1Av4b7-AFcmmsIqUMtcYkjyPqyFSiJo/exec";
+
+// === Auto tarikh & hari ===
+const now = new Date();
+const hariList = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
+const hari = hariList[now.getDay()];
+const tarikh = now.toISOString().split('T')[0];
+document.getElementById("tarikh-hari").innerText = `${tarikh} (${hari})`;
+
+// === Muat data dari Google Sheet ===
+async function loadData() {
+  try {
+    const res = await fetch(`${DEPLOY_URL}?tarikh=${tarikh}`);
+    const data = await res.json();
+    isiJadual(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// === Isi jadual ===
+function isiJadual(data) {
+  const tbody = document.querySelector("#jadual tbody");
+  tbody.innerHTML = "";
+  let jumlahKelas = 0, jumlahIsi = 0, totalHadir = 0, totalMurid = 0;
+
+  const kelasSelect = document.getElementById("kelas");
+  kelasSelect.innerHTML = "";
+
+  data.forEach(row => {
+    const [tar, hari, kelas, pengisi, hadir, jumlah, catatan] = row;
+    if (!kelas) return;
+    jumlahKelas++;
+    const peratus = (hadir && jumlah) ? Math.round((hadir/jumlah)*100) : 0;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${kelas}</td>
+      <td>${pengisi || ""}</td>
+      <td>${hadir || ""}</td>
+      <td>${jumlah || ""}</td>
+      <td>${peratus ? peratus+"%" : ""}</td>
+      <td>${catatan || ""}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // select options
+    const opt = document.createElement("option");
+    opt.value = kelas;
+    opt.textContent = kelas;
+    kelasSelect.appendChild(opt);
+
+    if (hadir && jumlah) {
+      jumlahIsi++;
+      totalHadir += Number(hadir);
+      totalMurid += Number(jumlah);
     }
+  });
+
+  // Analisis
+  const analisisBox = document.getElementById("analisis");
+  if (jumlahIsi > 0) {
+    const purata = totalMurid ? Math.round((totalHadir/totalMurid)*100) : 0;
+    analisisBox.innerHTML = `
+      💡 <b>Analisis Semasa:</b> 
+      ${jumlahIsi}/${jumlahKelas} kelas telah mengisi (${purata}% purata kehadiran).
+    `;
+  } else {
+    analisisBox.innerText = "Tiada data kehadiran dimasukkan lagi.";
   }
+}
 
-  function paparJadual(data) {
-    jadualKelas.innerHTML = "";
-    let countIsi = 0, totalHadir = 0, totalMurid = 0;
-    totalKelas.textContent = data.length;
-    data.forEach(row => {
-      const [tarikh,hari,kelas,pengisi,hadir,jumlah,catatan] = row;
-      const tr = document.createElement("tr");
-      const saved = pengisi || hadir || jumlah || catatan ? "saved" : "unsaved";
-      tr.className = saved;
-
-      tr.innerHTML = `
-        <td>${kelas}</td>
-        <td><input data-kelas="${kelas}" data-field="pengisi" value="${loadTemp(kelas,'pengisi',pengisi)}"></td>
-        <td><input data-kelas="${kelas}" data-field="hadir" value="${loadTemp(kelas,'hadir',hadir)}"></td>
-        <td><input data-kelas="${kelas}" data-field="jumlah" value="${loadTemp(kelas,'jumlah',jumlah)}"></td>
-        <td><input data-kelas="${kelas}" data-field="catatan" value="${loadTemp(kelas,'catatan',catatan)}"></td>
-        <td><button class="btn btn-sm btn-primary" onclick="simpan('${kelas}',this)">Simpan</button></td>`;
-      jadualKelas.appendChild(tr);
-
-      if (hadir && jumlah) {
-        countIsi++;
-        totalHadir += Number(hadir)||0;
-        totalMurid += Number(jumlah)||0;
-      }
-
-      // Auto-save setiap kali taip
-      tr.querySelectorAll("input").forEach(inp=>{
-        inp.addEventListener("input",()=>{
-          autoSaveTemp(inp.dataset.kelas, inp.dataset.field, inp.value);
-        });
-      });
-    });
-    kelasIsi.textContent = countIsi;
-    muridHadir.textContent = totalHadir;
-    const peratus = totalMurid ? (totalHadir/totalMurid*100).toFixed(1) : 0;
-    peratusHadir.textContent = peratus + "%";
-    barHadir.style.width = peratus + "%";
+// === Auto-simpan ke localStorage ===
+const form = document.getElementById("formKehadiran");
+form.addEventListener("input", () => {
+  const data = Object.fromEntries(new FormData(form).entries());
+  localStorage.setItem("draftKehadiran", JSON.stringify(data));
+});
+window.addEventListener("load", () => {
+  const draft = JSON.parse(localStorage.getItem("draftKehadiran") || "{}");
+  for (const [k,v] of Object.entries(draft)) {
+    if (form[k]) form[k].value = v;
   }
+});
 
-  function autoSaveTemp(kelas, field, value) {
-    const key = "hadirTemp_" + kelas;
-    const data = JSON.parse(localStorage.getItem(key) || "{}");
-    data[field] = value;
-    localStorage.setItem(key, JSON.stringify(data));
-  }
+// === Hantar data ke Apps Script ===
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const obj = Object.fromEntries(new FormData(form).entries());
+  obj.tarikh = tarikh;
+  obj.hari = hari;
 
-  function loadTemp(kelas, field, asal) {
-    const key = "hadirTemp_" + kelas;
-    const data = JSON.parse(localStorage.getItem(key) || "{}");
-    return data[field] ?? asal ?? "";
-  }
-
-  function clearTemp(kelas) {
-    localStorage.removeItem("hadirTemp_" + kelas);
-  }
-
-  async function simpan(kelas, btn) {
-    const tr = btn.closest("tr");
-    const pengisi = tr.querySelector('[data-field="pengisi"]').value.trim();
-    const hadir = tr.querySelector('[data-field="hadir"]').value.trim();
-    const jumlah = tr.querySelector('[data-field="jumlah"]').value.trim();
-    const catatan = tr.querySelector('[data-field="catatan"]').value.trim();
-    const tarikh = document.getElementById("tarikh").value;
-    const hari = document.getElementById("hari").value;
-    btn.disabled = true;
-    btn.textContent = "Menyimpan...";
-
+  document.getElementById("status").innerText = "⏳ Menyimpan...";
+  try {
     const res = await fetch(DEPLOY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action:"save", tarikh, hari, kelas, pengisi, hadir, jumlah, catatan })
+      body: JSON.stringify(obj),
+      headers: { "Content-Type": "application/json" }
     });
-    const out = await res.json();
-    if (out.status === "ok") {
-      tr.classList.remove("unsaved");
-      tr.classList.add("saved");
-      clearTemp(kelas);
+    const json = await res.json();
+    if (json.status === "ok") {
+      document.getElementById("status").innerHTML = "<span class='saved'>✔️ Disimpan</span>";
+      localStorage.removeItem("draftKehadiran");
+      form.reset();
+      loadData();
+    } else {
+      document.getElementById("status").innerHTML = "<span class='error'>❌ Ralat Simpan</span>";
     }
-    btn.textContent = "Simpan";
-    btn.disabled = false;
-    muatData();
+  } catch (err) {
+    document.getElementById("status").innerHTML = "<span class='error'>❌ Gagal Hantar</span>";
   }
+});
 
-  document.getElementById("setHariBaru").onclick = async ()=>{
-    const t = document.getElementById("tarikh").value;
-    const h = document.getElementById("hari").value;
-    if (!confirm(`Set hari baru ${t} (${h}) ?`)) return;
-    await fetch(DEPLOY_URL, {method:"POST",body:JSON.stringify({action:"reset",tarikh:t,hari:h})});
-    muatData();
-  };
-
-  document.getElementById("refresh").onclick = ()=>muatData();
-
-  document.getElementById("exportCsv").onclick = ()=>{
-    const rows = [...jadualKelas.querySelectorAll("tr")].map(tr=>[...tr.querySelectorAll("td")].slice(0,5).map(td=>td.textContent.trim()));
-    let csv = "Kelas,Nama Pengisi,Bil Hadir,Jumlah Murid,Catatan\n" + rows.map(r=>r.join(",")).join("\n");
-    const blob = new Blob([csv],{type:"text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "LaporanKehadiran.csv";
-    a.click();
-  };
-
-  document.getElementById("tarikh").value = new Date().toISOString().split("T")[0];
-  muatData();
-  </script>
+loadData();
+</script>
 </body>
 </html>
