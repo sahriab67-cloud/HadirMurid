@@ -105,15 +105,20 @@ async function simpanData(kelas, btn) {
   const hadir = document.querySelector(`.hadir[data-kelas='${kelas}']`).value;
   const jumlah = document.querySelector(`.jumlah[data-kelas='${kelas}']`).value;
   const catatan = document.querySelector(`.catatan[data-kelas='${kelas}']`).value;
+  const data = {
+    tarikh: new Date().toISOString().split("T")[0],
+    kelas, pengisi, hadir, jumlah, catatan
+  };
 
   try {
-    const res = await fetch(GOOGLE_WEBAPP_URL, {
+    await fetch(GOOGLE_WEBAPP_URL, {
       method: "POST",
+      mode: "no-cors",              // ✅ penting untuk elak blok CORS
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kelas, pengisi, hadir, jumlah, catatan })
+      body: JSON.stringify(data)
     });
-    const result = await res.json();
-    alert("✅ " + result.message);
+
+    alert("✅ Data dihantar ke Google Sheet!");
   } catch (err) {
     alert("❌ Gagal simpan: " + err);
   } finally {
@@ -167,4 +172,5 @@ window.onload = () => {
 
 </body>
 </html>
+
 
