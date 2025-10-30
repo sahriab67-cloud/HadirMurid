@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Laporan Kehadiran Harian Murid STS — Analisis</title>
+<title>Laporan Kehadiran Harian Murid STS — Analisis Tengah</title>
 <style>
   :root{
     --blue:#0b63d6;
@@ -13,6 +13,7 @@
     --danger:#fff2f2;
     --card:#ffffff;
     --accent:#1e90ff;
+    --green:#28a745;
   }
   *{box-sizing:border-box}
   body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;background:#f4f8ff;color:#10233b;margin:0;padding:18px}
@@ -25,28 +26,28 @@
   .card{background:var(--card);padding:14px;border-radius:10px;margin-top:14px;box-shadow:0 8px 24px rgba(16,35,59,0.06)}
   .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center}
   .topbar .info{color:var(--muted);font-weight:600}
-  /* Analysis area */
-  .analysis-row{display:flex;gap:12px;align-items:center;margin-top:12px}
-  .summary-mini{display:flex;gap:10px;align-items:center;color:var(--muted);font-weight:700}
-  .summary-mini div{background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 4px 12px rgba(2,35,84,0.04)}
-  .stat-cards{display:flex;gap:12px;margin-top:12px}
-  .stat-card{flex:1;background:linear-gradient(180deg,#fff,#f7fbff);padding:12px;border-radius:10px;border:1px solid #e6eefc;box-shadow:0 8px 18px rgba(16,35,59,0.04);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px}
+  /* Centered Analysis */
+  .analysis-center { display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:12px; }
+  .summary-mini{display:flex;gap:12px;align-items:center;color:var(--muted);font-weight:700}
+  .summary-mini div{background:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,35,84,0.04);min-width:150px;text-align:center}
+  .stat-cards{display:flex;gap:14px;margin-top:6px}
+  .stat-card{width:260px;background:linear-gradient(180deg,#fff,#f7fbff);padding:14px;border-radius:10px;border:1px solid #e6eefc;box-shadow:0 8px 18px rgba(16,35,59,0.04);display:flex;flex-direction:column;align-items:center;gap:6px}
   .stat-card .label{color:var(--muted);font-weight:700}
-  .stat-card .value{font-size:1.4rem;font-weight:800;color:var(--blue)}
-  .progress-wrap{margin-top:12px;background:#eaf2ff;padding:12px;border-radius:8px;border:1px solid #dbeeff}
-  .progress-bar{height:18px;background:#dfeeff;border-radius:999px;overflow:hidden}
-  .progress-fill{height:100%;width:0%;background:var(--accent);transition:width 900ms cubic-bezier(.2,.9,.3,1)}
+  .stat-card .value{font-size:1.6rem;font-weight:800;color:var(--blue)}
+  .progress-wrap{width:80%;background:#eaf2ff;padding:12px;border-radius:8px;border:1px solid #dbeeff}
+  .progress-bar{height:20px;background:#dfeeff;border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:var(--green);transition:width 900ms cubic-bezier(.2,.9,.3,1)}
   /* table */
-  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:0.95rem}
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:0.95rem}
   th,td{border:1px solid #e6eefc;padding:8px;text-align:center}
   th{background:var(--soft-blue);color:var(--blue);font-weight:700}
   td.left{text-align:left;padding-left:12px}
-  .notfilled td{background:var(--danger)}
-  .filled td{background:var(--success)}
+  tr.notfilled td{background:var(--danger)}
+  tr.filled td{background:var(--success)}
   input.small{width:96%;padding:6px;border-radius:6px;border:1px solid #dbeafc}
   .status{margin-top:10px;text-align:center;font-weight:700;color:var(--muted)}
   .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
-  @media(max-width:980px){ .stat-cards{flex-direction:column} header{flex-direction:column;align-items:flex-start;gap:8px} .analysis-row{flex-direction:column;align-items:flex-start} }
+  @media(max-width:980px){ .stat-cards{flex-direction:column;align-items:center} header{flex-direction:column;align-items:flex-start;gap:8px} .summary-mini{flex-direction:column} .progress-wrap{width:100%} }
 </style>
 </head>
 <body>
@@ -72,40 +73,41 @@
       <div class="actions"></div>
     </div>
 
-    <!-- Analysis area: summary mini, stat cards, progress -->
-    <div class="analysis-row">
+    <!-- CENTERED ANALYSIS -->
+    <div class="analysis-center" id="analysisCenter">
       <div class="summary-mini" id="summaryMini">
         <div id="miniKelas">Kelas Isi: 0 / 44</div>
         <div id="miniHadir">Murid Hadir: 0</div>
         <div id="miniPeratus">Peratus: 0%</div>
       </div>
-    </div>
 
-    <div class="stat-cards" id="statCards">
-      <div class="stat-card">
-        <div class="label">Kelas Diisi</div>
-        <div class="value" id="cardKelas">0 / 44</div>
-        <div class="muted">Bilangan kelas yang sudah tekan simpan</div>
+      <div class="stat-cards" id="statCards">
+        <div class="stat-card">
+          <div class="label">Kelas Diisi</div>
+          <div class="value" id="cardKelas">0 / 44</div>
+          <div class="muted">Bilangan kelas yang sudah tekan simpan</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Jumlah Murid Hadir</div>
+          <div class="value" id="cardHadir">0</div>
+          <div class="muted">Jumlah semua murid hadir hari ini</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Jumlah Murid (Keseluruhan)</div>
+          <div class="value" id="cardJumlah">0</div>
+          <div class="muted">Jumlah murid berdaftar (ruangan 'JUMLAH MURID')</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="label">Jumlah Murid Hadir</div>
-        <div class="value" id="cardHadir">0</div>
-        <div class="muted">Jumlah semua murid hadir hari ini</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Jumlah Murid (Keseluruhan)</div>
-        <div class="value" id="cardJumlah">0</div>
-        <div class="muted">Jumlah murid berdaftar (daripada ruangan 'JUMLAH MURID')</div>
-      </div>
-    </div>
 
-    <div class="progress-wrap" style="margin-top:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--muted);margin-bottom:8px">
-        <div>Peratus Kehadiran</div>
-        <div id="percentLabel">0%</div>
+      <div class="progress-wrap" style="margin-top:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--muted);margin-bottom:8px">
+          <div>Peratus Kehadiran</div>
+          <div id="percentLabel">0%</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     </div>
+    <!-- END ANALYSIS -->
 
     <!-- Table -->
     <table id="kehadiranTbl" aria-describedby="desc">
@@ -128,8 +130,10 @@
 
 <script>
 /* ============== CONFIG ============== */
-/* Ganti dengan Web App /exec cikgu — saya letakkan URL yang cikgu berikan */
+/* Web App exec URL — gunakan URL cikgu yang sudah deploy */
 const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyK_qh_CV3fdyq-dsLbJCboDvTXoHs6aUlpHCq26SJAc8T3lbkslfep2nLqsDUzzTJm/exec";
+
+/* Senarai kelas tetap */
 const KELAS_LIST = [
 "1CEMPAKA","1KAA","1KENANGA","1MAWAR","1ORKID","1SEROJA",
 "2CEMPAKA","2KAA","2KENANGA","2MAWAR","2ORKID","2SEROJA",
@@ -159,6 +163,7 @@ const cardJumlah = document.getElementById("cardJumlah");
 const percentLabel = document.getElementById("percentLabel");
 const progressFill = document.getElementById("progressFill");
 
+/* Escape */
 function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 function rowHTML(kelas, dataRow) {
@@ -194,10 +199,12 @@ async function loadData(){
       return;
     }
 
+    // If no date chosen by user, pick the first row's TARIKH
     if (!tarikh) {
       const first = rows.find(r => r["TARIKH"]);
       if (first && first["TARIKH"]) tarikhEl.value = first["TARIKH"];
     }
+    // Fill hari if empty
     if (!hariEl.value && rows.length) {
       const any = rows.find(r => r["HARI"]);
       if (any && any["HARI"]) hariEl.value = any["HARI"];
@@ -238,7 +245,6 @@ async function loadData(){
     // Update progress bar & label with animation
     const pct = Math.max(0, Math.min(100, Math.round(percent * 10) / 10));
     percentLabel.textContent = `${pct}%`;
-    // animate width
     setTimeout(()=>{ progressFill.style.width = pct + "%"; }, 40);
 
     countInfo.textContent = `Diisi: ${filled} / ${KELAS_LIST.length}`;
@@ -331,13 +337,16 @@ btnExport.addEventListener("click", () => {
   a.click();
 });
 
-/* On load: default date = today & default hari (Malay weekday), then load data */
+/* On load: default date = 2025-10-31 (supaya boleh terus guna esok) */
 window.addEventListener("load", () => {
+  // set default to 31 Oct 2025 as requested
+  const defaultDate = "2025-10-31";
   if (!tarikhEl.value) {
-    const d = new Date();
-    tarikhEl.value = d.toISOString().slice(0,10);
+    tarikhEl.value = defaultDate;
     const hariNames = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
-    hariEl.value = hariNames[d.getDay()];
+    // 2025-10-31 is Jumaat; but compute just in case
+    const d = new Date(defaultDate + "T00:00:00");
+    hariEl.value = hariNames[d.getDay()] || "Jumaat";
   }
   loadData();
 });
