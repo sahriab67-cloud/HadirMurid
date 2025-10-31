@@ -196,25 +196,27 @@ document.getElementById("btnSimpan").addEventListener("click", async ()=>{
   const statusEl = document.getElementById("status");
   statusEl.innerText = "Menghantar...";
   try {
-    const res = await fetch(DEPLOY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const json = await res.json();
-    if (json && json.status && json.status.toLowerCase() === "ok") {
-      statusEl.innerText = "✅ Disimpan";
-      clearDraft(kelas);
-      setTimeout(()=>statusEl.innerText = "", 1400);
-      await loadData();
-    } else {
-      statusEl.innerText = "❌ Gagal simpan";
-      console.error("server:", json);
-    }
-  } catch (err) {
-    statusEl.innerText = "❌ Gagal sambung";
-    console.error(err);
+try {
+  const res = await fetch(DEPLOY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const text = await res.text();        // baca mentah
+  console.log("Response text:", text);  // paparkan di console
+  const json = JSON.parse(text || "{}");
+  if (json.status === "ok") {
+    statusEl.innerText = "✅ Disimpan";
+    clearDraft(kelas);
+    setTimeout(()=>statusEl.innerText = "", 1400);
+    await loadData();
+  } else {
+    statusEl.innerText = "❌ Gagal simpan (server)";
   }
+} catch (err) {
+  statusEl.innerText = "❌ Gagal sambung (fetch)";
+  console.error("Fetch error:", err);
+}
 });
 
 /* initial load */
@@ -222,5 +224,6 @@ loadData();
 </script>
 </body>
 </html>
+
 
 
