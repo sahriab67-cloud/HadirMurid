@@ -1,239 +1,204 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laporan Kehadiran STS</title>
-<style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background: #f4f8ff;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
-  header {
-    background: #1976d2;
-    color: white;
-    padding: 15px;
-    font-size: 1.4em;
-    font-weight: 600;
-  }
-  .container {
-    max-width: 900px;
-    margin: 20px auto;
-    background: white;
-    border-radius: 14px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    padding: 20px;
-  }
-  label {
-    font-weight: 600;
-  }
-  input, select, textarea {
-    width: 100%;
-    padding: 6px 8px;
-    margin: 6px 0 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 14px;
-  }
-  button {
-    background: #1976d2;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  button:hover {
-    background: #0d47a1;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 14px;
-  }
-  th, td {
-    border: 1px solid #ddd;
-    padding: 6px;
-    font-size: 14px;
-  }
-  th {
-    background: #1976d2;
-    color: white;
-  }
-  .analisis-box {
-    background: #e3f2fd;
-    border-radius: 12px;
-    margin: 15px auto;
-    padding: 10px;
-    width: 80%;
-    font-weight: 600;
-  }
-  .saved {
-    color: green;
-    font-weight: bold;
-  }
-  .error {
-    color: red;
-    font-weight: bold;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Laporan Kehadiran Harian Murid STS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+    :root{--blue:#0b5ed7;--bg:#f4f8ff}
+    body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;background:var(--bg);color:#10233b}
+    .header{background:var(--blue);color:#fff;padding:14px;border-radius:8px;text-align:center;font-weight:700}
+    .card{border-radius:12px;box-shadow:0 6px 20px rgba(13,94,215,0.08);padding:18px;background:#fff}
+    label{font-weight:600}
+    input,select,textarea{border-radius:8px;border:1px solid #dde7fb;padding:8px}
+    .btn-primary{background:var(--blue);border-color:var(--blue)}
+    table th{background:#e8f3ff;color:var(--blue);font-weight:700}
+    .analisis{background:#eaf3ff;padding:12px;border-radius:10px;margin-bottom:12px}
+    .status-msg{font-weight:700}
+    .footer-note{font-size:12px;color:#6b7280;margin-top:8px}
+  </style>
 </head>
 <body>
+  <div class="container py-3">
+    <div class="header">Laporan Kehadiran Harian Murid STS</div>
+    <div class="card mt-3">
+      <div id="tarikhInfo" class="text-center mb-2"></div>
+      <div id="analisisBox" class="analisis text-center">Memuat data...</div>
 
-<header>
-  Laporan Kehadiran Harian STS
-</header>
+      <form id="formKehadiran" class="mb-3">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label>Kelas:</label>
+            <select id="kelas" class="form-select"></select>
+          </div>
+          <div class="col-md-6">
+            <label>Nama Pengisi:</label>
+            <input id="pengisi" class="form-control" type="text" />
+          </div>
+        </div>
 
-<div class="container">
-  <h3 id="tarikh-hari"></h3>
-  <div id="analisis" class="analisis-box">Menunggu data...</div>
+        <div class="row g-2 mt-2">
+          <div class="col-md-4">
+            <label>Bil. Hadir:</label>
+            <input id="hadir" class="form-control" type="number" min="0" />
+          </div>
+          <div class="col-md-4">
+            <label>Jumlah Murid:</label>
+            <input id="jumlah" class="form-control" type="number" min="0" />
+          </div>
+          <div class="col-md-4">
+            <label>&nbsp;</label>
+            <button id="btnSimpan" class="btn btn-primary w-100" type="button">💾 Simpan</button>
+          </div>
+        </div>
 
-  <form id="formKehadiran">
-    <label for="kelas">Kelas:</label>
-    <select id="kelas" name="kelas"></select>
+        <div class="mt-2">
+          <label>Catatan:</label>
+          <textarea id="catatan" class="form-control" rows="2"></textarea>
+        </div>
 
-    <label for="pengisi">Nama Pengisi:</label>
-    <input type="text" id="pengisi" name="pengisi">
+        <div class="mt-2 d-flex gap-2 align-items-center">
+          <div id="status" class="status-msg"></div>
+        </div>
+      </form>
 
-    <label for="hadir">Bil. Hadir:</label>
-    <input type="number" id="hadir" name="hadir">
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr><th>Kelas</th><th>Pengisi</th><th>Hadir</th><th>Jumlah</th><th>Peratus</th><th>Catatan</th></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
 
-    <label for="jumlah">Jumlah Murid:</label>
-    <input type="number" id="jumlah" name="jumlah">
-
-    <label for="catatan">Catatan:</label>
-    <textarea id="catatan" name="catatan" rows="2"></textarea>
-
-    <button type="submit">💾 Simpan</button>
-    <span id="status"></span>
-  </form>
-
-  <table id="jadual">
-    <thead>
-      <tr>
-        <th>Kelas</th><th>Pengisi</th><th>Hadir</th><th>Jumlah</th><th>Peratus</th><th>Catatan</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+      <div class="footer-note text-center">Sistem ini menyokong auto-save sementara (localStorage) — data tempatan akan dipadam apabila baris disimpan ke Google Sheets.</div>
+    </div>
+  </div>
 
 <script>
-const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbxfpwCGwKRqwk1DgPWIR2DntcRRpMQ8MyQY5CWLN0cbcq-kWFdv1NIMhwgTwB1z0KlB/exec";
+const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzUH37TX2RW7BHJcM7IbEPiWbYuN3DjOs9SLK5Jz0vA4tFX_W5uer4BI-S4fk2gmrMv/exec";
+const hariNames = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
+const today = new Date();
+const tarikhStr = today.toISOString().slice(0,10);
+const hariStr = hariNames[today.getDay()];
+document.getElementById("tarikhInfo").innerText = tarikhStr + " (" + hariStr + ")";
 
-// === Auto tarikh & hari ===
-const now = new Date();
-const hariList = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
-const hari = hariList[now.getDay()];
-const tarikh = now.toISOString().split('T')[0];
-document.getElementById("tarikh-hari").innerText = `${tarikh} (${hari})`;
+function saveDraft(kelas, field, value){
+  const key = "sts_draft_" + kelas;
+  const cur = JSON.parse(localStorage.getItem(key) || "{}");
+  cur[field] = value;
+  localStorage.setItem(key, JSON.stringify(cur));
+}
 
-// === Muat data dari Google Sheet ===
-async function loadData() {
+function loadDraft(kelas, field, fallback){
+  const key = "sts_draft_" + kelas;
+  const cur = JSON.parse(localStorage.getItem(key) || "{}");
+  return cur[field] ?? fallback ?? "";
+}
+
+function clearDraft(kelas){ localStorage.removeItem("sts_draft_" + kelas); }
+
+async function loadData(){
+  document.getElementById("analisisBox").innerText = "Memuat data...";
   try {
-    const res = await fetch(`${DEPLOY_URL}?tarikh=${tarikh}`);
+    const res = await fetch(DEPLOY_URL + "?tarikh=" + encodeURIComponent(tarikhStr));
     const data = await res.json();
-    isiJadual(data);
-  } catch (err) {
-    console.error(err);
+    renderTable(data);
+  } catch (e){
+    document.getElementById("analisisBox").innerText = "Gagal sambung ke server.";
+    console.error(e);
   }
 }
 
-// === Isi jadual ===
-function isiJadual(data) {
-  const tbody = document.querySelector("#jadual tbody");
+function renderTable(data){
+  const tbody = document.getElementById("tbody");
+  const sel = document.getElementById("kelas");
   tbody.innerHTML = "";
-  let jumlahKelas = 0, jumlahIsi = 0, totalHadir = 0, totalMurid = 0;
+  sel.innerHTML = "<option value=''>-- Pilih Kelas --</option>";
 
-  const kelasSelect = document.getElementById("kelas");
-  kelasSelect.innerHTML = "";
-
-  data.forEach(row => {
-    const [tar, hari, kelas, pengisi, hadir, jumlah, catatan] = row;
-    if (!kelas) return;
-    jumlahKelas++;
-    const peratus = (hadir && jumlah) ? Math.round((hadir/jumlah)*100) : 0;
+  let countFilled = 0, sumHadir=0, sumJumlah=0;
+  data.forEach(r => {
+    // r expected as array: [tarikh, hari, kelas, pengisi, hadir, jumlah, catatan, masa]
+    const kelas = r[2] || "";
+    const pengisi = r[3] || "";
+    const hadir = r[4] || "";
+    const jumlah = r[5] || "";
+    const catatan = r[6] || "";
 
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${kelas}</td>
-      <td>${pengisi || ""}</td>
-      <td>${hadir || ""}</td>
-      <td>${jumlah || ""}</td>
-      <td>${peratus ? peratus+"%" : ""}</td>
-      <td>${catatan || ""}</td>
-    `;
+    const peratus = (Number(hadir) && Number(jumlah)) ? Math.round(Number(hadir)/Number(jumlah)*100) + "%" : "";
+    tr.innerHTML = "<td>"+kelas+"</td><td>"+pengisi+"</td><td>"+hadir+"</td><td>"+jumlah+"</td><td>"+peratus+"</td><td>"+catatan+"</td>";
     tbody.appendChild(tr);
 
-    // select options
     const opt = document.createElement("option");
-    opt.value = kelas;
-    opt.textContent = kelas;
-    kelasSelect.appendChild(opt);
+    opt.value = kelas; opt.textContent = kelas;
+    sel.appendChild(opt);
 
-    if (hadir && jumlah) {
-      jumlahIsi++;
-      totalHadir += Number(hadir);
-      totalMurid += Number(jumlah);
-    }
+    if (pengisi || hadir || jumlah || catatan) { countFilled++; }
+    sumHadir += Number(hadir) || 0;
+    sumJumlah += Number(jumlah) || 0;
   });
 
-  // Analisis
-  const analisisBox = document.getElementById("analisis");
-  if (jumlahIsi > 0) {
-    const purata = totalMurid ? Math.round((totalHadir/totalMurid)*100) : 0;
-    analisisBox.innerHTML = `
-      💡 <b>Analisis Semasa:</b> 
-      ${jumlahIsi}/${jumlahKelas} kelas telah mengisi (${purata}% purata kehadiran).
-    `;
-  } else {
-    analisisBox.innerText = "Tiada data kehadiran dimasukkan lagi.";
+  document.getElementById("analisisBox").innerHTML = "<div>Kelas Isi: "+countFilled+" / "+data.length+"</div><div>Murid Hadir: "+sumHadir+"</div><div>Peratus: "+(sumJumlah?Math.round(sumHadir/sumJumlah*100)+"%":"0%")+"</div>";
+
+  // restore draft for selected default
+  const firstKelas = sel.options.length>1 ? sel.options[1].value : "";
+  if(firstKelas) {
+    sel.value = firstKelas;
+    document.getElementById("pengisi").value = loadDraft(firstKelas,'pengisi','');
+    document.getElementById("hadir").value = loadDraft(firstKelas,'hadir','');
+    document.getElementById("jumlah").value = loadDraft(firstKelas,'jumlah','');
+    document.getElementById("catatan").value = loadDraft(firstKelas,'catatan','');
   }
 }
 
-// === Auto-simpan ke localStorage ===
-const form = document.getElementById("formKehadiran");
-form.addEventListener("input", () => {
-  const data = Object.fromEntries(new FormData(form).entries());
-  localStorage.setItem("draftKehadiran", JSON.stringify(data));
-});
-window.addEventListener("load", () => {
-  const draft = JSON.parse(localStorage.getItem("draftKehadiran") || "{}");
-  for (const [k,v] of Object.entries(draft)) {
-    if (form[k]) form[k].value = v;
-  }
+document.getElementById("kelas").addEventListener("change", function(){
+  const k = this.value;
+  document.getElementById("pengisi").value = loadDraft(k,'pengisi','');
+  document.getElementById("hadir").value = loadDraft(k,'hadir','');
+  document.getElementById("jumlah").value = loadDraft(k,'jumlah','');
+  document.getElementById("catatan").value = loadDraft(k,'catatan','');
 });
 
-// === Hantar data ke Apps Script ===
-form.addEventListener("submit", async e => {
-  e.preventDefault();
-  const obj = Object.fromEntries(new FormData(form).entries());
-  obj.tarikh = tarikh;
-  obj.hari = hari;
+["pengisi","hadir","jumlah","catatan"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", (e)=>{
+    const kelas = document.getElementById("kelas").value;
+    if (!kelas) return;
+    saveDraft(kelas, id, e.target.value);
+  });
+});
 
-  document.getElementById("status").innerText = "⏳ Menyimpan...";
+document.getElementById("btnSimpan").addEventListener("click", async ()=>{
+  const kelas = document.getElementById("kelas").value;
+  if (!kelas) { alert("Sila pilih kelas"); return; }
+  const pengisi = document.getElementById("pengisi").value;
+  const hadir = document.getElementById("hadir").value;
+  const jumlah = document.getElementById("jumlah").value;
+  const catatan = document.getElementById("catatan").value;
+  const peratus = jumlah?((Number(hadir)/Number(jumlah))*100).toFixed(1):0;
+
+  const payload = { tarikh: tarikhStr, hari: hariStr, kelas, pengisi, hadir, jumlah, peratus, catatan };
+
+  document.getElementById("status").innerText = "Menghantar...";
   try {
     const res = await fetch(DEPLOY_URL, {
       method: "POST",
-      body: JSON.stringify(obj),
-      headers: { "Content-Type": "application/json" }
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
     });
-    const json = await res.json();
-    if (json.status === "ok") {
-      document.getElementById("status").innerHTML = "<span class='saved'>✔️ Disimpan</span>";
-      localStorage.removeItem("draftKehadiran");
-      form.reset();
+    const j = await res.json();
+    if (j && (j.status==="ok" || j.status==="OK" || j.status==="Ok")) {
+      document.getElementById("status").innerText = "✅ Disimpan";
+      clearDraft(kelas);
+      setTimeout(()=>document.getElementById("status").innerText="",1200);
       loadData();
     } else {
-      document.getElementById("status").innerHTML = "<span class='error'>❌ Ralat Simpan</span>";
+      document.getElementById("status").innerText = "❌ Gagal simpan";
     }
   } catch (err) {
-    document.getElementById("status").innerHTML = "<span class='error'>❌ Gagal Hantar</span>";
+    console.error(err);
+    document.getElementById("status").innerText = "❌ Gagal sambung";
   }
 });
 
@@ -241,6 +206,3 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
