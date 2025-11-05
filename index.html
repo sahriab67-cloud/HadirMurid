@@ -80,7 +80,7 @@
   </div>
 
 <script>
-/* === GANTI DEPLOY_URL DENGAN URL /exec YANG ANDA DEPLOY DARI APPS SCRIPT === */
+/* === GANTI DENGAN URL /exec DARI SCRIPT CIKGU === */
 const DEPLOY_URL = "https://script.google.com/macros/s/AKfycbzeb4JP2Lvz_7MphuO_ppUzmlmSNTtRKjjcvbn65WoIcXWLCWSiGmA1CqMhTEWfLc4o/exec";
 
 /* Auto tarikh & hari */
@@ -88,7 +88,7 @@ const hariNames = ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"];
 const today = new Date();
 const tarikhStr = today.toISOString().slice(0,10);
 const hariStr = hariNames[today.getDay()];
-document.getElementById("tarikhInfo").innerText = tarikhStr + " (" + hariStr + ")";
+document.getElementById("tarikhInfo").innerText = `${tarikhStr} (${hariStr})`;
 
 /* LocalStorage draft helpers */
 function saveDraft(kelas, field, value){
@@ -111,11 +111,13 @@ async function loadData(){
   try {
     const res = await fetch(DEPLOY_URL + "?tarikh=" + encodeURIComponent(tarikhStr));
     if (!res.ok) throw new Error("Gagal sambungan");
-    const data = await res.json();
+    const text = await res.text();
+    console.log("Response:", text);
+    const data = JSON.parse(text);
     renderTable(data);
   } catch (e) {
     box.innerText = "❌ Gagal sambung ke server.";
-    console.error(e);
+    console.error("loadData error:", e);
   }
 }
 
@@ -128,7 +130,6 @@ function renderTable(data){
 
   let countFilled = 0, sumHadir = 0, sumJumlah = 0;
   (data || []).forEach(row => {
-    // expected row: [tarikh, hari, kelas, pengisi, hadir, jumlah, catatan, masa]
     const kelas = row[2] || "";
     const pengisi = row[3] || "";
     const hadir = row[4] || "";
@@ -150,28 +151,18 @@ function renderTable(data){
   });
 
   document.getElementById("analisisBox").innerHTML =
-    `<div>Kelas Isi: ${countFilled} / ${ (data||[]).length }</div>
+    `<div>Kelas Isi: ${countFilled} / ${(data||[]).length}</div>
      <div>Murid Hadir: ${sumHadir}</div>
-     <div>Peratus: ${ sumJumlah ? Math.round(sumHadir/sumJumlah*100) + "%" : "0%" }</div>`;
-
-  // restore drafts into first class (if any)
-  if (sel.options.length > 1) {
-    sel.selectedIndex = 1;
-    const first = sel.value;
-    document.getElementById("pengisi").value = loadDraft(first, 'pengisi', '');
-    document.getElementById("hadir").value = loadDraft(first, 'hadir', '');
-    document.getElementById("jumlah").value = loadDraft(first, 'jumlah', '');
-    document.getElementById("catatan").value = loadDraft(first, 'catatan', '');
-  }
+     <div>Peratus: ${sumJumlah ? Math.round(sumHadir/sumJumlah*100) + "%" : "0%"}</div>`;
 }
 
-/* events */
-document.getElementById("kelas").addEventListener("change", function(){
-  const k = this.value;
-  document.getElementById("pengisi").value = loadDraft(k, 'pengisi', '');
-  document.getElementById("hadir").value = loadDraft(k, 'hadir', '');
-  document.getElementById("jumlah").value = loadDraft(k, 'jumlah', '');
-  document.getElementById("catatan").value = loadDraft(k, 'catatan', '');
+/* Input events */
+document.getElementById("kelas").addEventListener("change", ()=>{
+  const k = document.getElementById("kelas").value;
+  document.getElementById("pengisi").value = loadDraft(k,'pengisi','');
+  document.getElementById("hadir").value = loadDraft(k,'hadir','');
+  document.getElementById("jumlah").value = loadDraft(k,'jumlah','');
+  document.getElementById("catatan").value = loadDraft(k,'catatan','');
 });
 
 ["pengisi","hadir","jumlah","catatan"].forEach(id=>{
@@ -182,41 +173,40 @@ document.getElementById("kelas").addEventListener("change", function(){
   });
 });
 
+/* Simpan data */
 document.getElementById("btnSimpan").addEventListener("click", async ()=>{
   const kelas = document.getElementById("kelas").value;
-  if (!kelas) { alert("Sila pilih kelas"); return; }
+  if (!kelas) return alert("Sila pilih kelas");
   const pengisi = document.getElementById("pengisi").value.trim();
   const hadir = document.getElementById("hadir").value;
   const jumlah = document.getElementById("jumlah").value;
   const catatan = document.getElementById("catatan").value.trim();
-  const peratus = jumlah ? ((Number(hadir)/Number(jumlah))*100).toFixed(1) : 0;
 
-  const payload = { tarikh: tarikhStr, hari: hariStr, kelas, pengisi, hadir, jumlah, peratus, catatan };
-
+  const payload = { tarikh: tarikhStr, hari: hariStr, kelas, pengisi, hadir, jumlah, catatan };
   const statusEl = document.getElementById("status");
   statusEl.innerText = "Menghantar...";
+
   try {
-try {
-  const res = await fetch(DEPLOY_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const text = await res.text();        // baca mentah
-  console.log("Response text:", text);  // paparkan di console
-  const json = JSON.parse(text || "{}");
-  if (json.status === "ok") {
-    statusEl.innerText = "✅ Disimpan";
-    clearDraft(kelas);
-    setTimeout(()=>statusEl.innerText = "", 1400);
-    await loadData();
-  } else {
-    statusEl.innerText = "❌ Gagal simpan (server)";
+    const res = await fetch(DEPLOY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    console.log("POST response:", text);
+    const json = JSON.parse(text || "{}");
+    if (json.status === "ok") {
+      statusEl.innerText = "✅ Disimpan";
+      clearDraft(kelas);
+      await loadData();
+      setTimeout(()=>statusEl.innerText="",1500);
+    } else {
+      statusEl.innerText = "❌ Gagal simpan (server)";
+    }
+  } catch (err) {
+    statusEl.innerText = "❌ Gagal sambung ke server.";
+    console.error("POST error:", err);
   }
-} catch (err) {
-  statusEl.innerText = "❌ Gagal sambung (fetch)";
-  console.error("Fetch error:", err);
-}
 });
 
 /* initial load */
@@ -224,6 +214,3 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
