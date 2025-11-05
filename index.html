@@ -129,7 +129,7 @@ function renderTable(data){
   sel.innerHTML = "<option value=''>-- Pilih Kelas --</option>";
 
   let countFilled = 0, sumHadir = 0, sumJumlah = 0;
-  (data || []).forEach(row => {
+  (data || []).slice(1).forEach(row => {
     const kelas = row[2] || "";
     const pengisi = row[3] || "";
     const hadir = row[4] || "";
@@ -214,6 +214,7 @@ loadData();
 </script>
 </body>
 </html>
+
 
 
 
